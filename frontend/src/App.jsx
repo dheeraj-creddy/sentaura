@@ -7,7 +7,7 @@ import Controls from './components/Controls';
 import './App.css';
 
 const DEEPGRAM_API_KEY = import.meta.env.VITE_DEEPGRAM_API_KEY;
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function App() {
   const [isRecording, setIsRecording] = useState(false);
