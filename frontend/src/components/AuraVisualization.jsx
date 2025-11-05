@@ -122,29 +122,6 @@ const AuraVisualization = ({ sentiment, emotion, intensity, valence, keywords })
       p5.circle(particle.x, particle.y, size);
     });
 
-    // Add after particle loop, before connections:
-if (currentIntensity.current > 0.5) {
-  // Draw constellation patterns for high intensity
-  const clusters = Math.floor(currentIntensity.current * 5);
-
-  for (let c = 0; c < clusters; c++) {
-    const cx = p5.random(p5.width);
-    const cy = p5.random(p5.height);
-
-    p5.stroke(colorHue.current, 70, 80, 30);
-    p5.strokeWeight(1);
-
-    // Draw star burst
-    for (let i = 0; i < 8; i++) {
-      const angle = (i / 8) * p5.TWO_PI;
-      const len = 50 + p5.sin(noiseOffset.current + i) * 30;
-      const x = cx + p5.cos(angle) * len;
-      const y = cy + p5.sin(angle) * len;
-      p5.line(cx, cy, x, y);
-    }
-  }
-}
-
     // Draw flowing lines connecting nearby particles
     if (currentIntensity.current > 0.3) {
       p5.stroke(colorHue.current, 60, 60, currentIntensity.current * 15);

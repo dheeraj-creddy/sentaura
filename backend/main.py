@@ -26,7 +26,7 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 # Choose which API to use (can switch between them)
 USE_API = os.getenv("USE_API", "openai")  # Options: "openai", "anthropic"
-USE_API="openai"
+
 
 class TextInput(BaseModel):
     text: str
@@ -82,6 +82,49 @@ Return ONLY the JSON, no other text."""
         print(f"OpenAI API error: {e}")
         raise
 
+'''
+def extract_sentiment_anthropic(text: str) -> dict:
+    """Extract sentiment using Anthropic Claude API"""
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+    prompt = f"""Analyze the emotional sentiment of the following text and return ONLY a JSON object with these exact fields:
+
+Text: "{text}"
+
+Return format:
+{{
+    "sentiment": <float between -1.0 (very negative) and 1.0 (very positive)>,
+    "emotion": "<primary emotion: joy, sadness, anger, fear, surprise, disgust, neutral>",
+    "keywords": [<array of 3-5 key topics/words from the text>],
+    "intensity": <float between 0.0 (calm) and 1.0 (intense)>,
+    "valence": <float between -1.0 (unpleasant) and 1.0 (pleasant)>
+}}
+
+Return ONLY the JSON, no other text."""
+
+    try:
+        message = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
+
+        result = message.content[0].text.strip()
+        # Remove markdown code blocks if present
+        if result.startswith("```"):
+            result = result.split("```")[1]
+            if result.startswith("json"):
+                result = result[4:]
+
+        import json
+        return json.loads(result)
+    except Exception as e:
+        print(f"Anthropic API error: {e}")
+        raise
+
+'''
 @app.get("/")
 async def root():
     return {"message": "Sentiment Aura API", "status": "running", "api": USE_API}
@@ -97,7 +140,9 @@ async def process_text(input_data: TextInput):
 
     try:
         # Call appropriate API based on configuration
-        if USE_API == "openai" and OPENAI_API_KEY:
+        if USE_API == "anthropic" and ANTHROPIC_API_KEY:
+            result = extract_sentiment_anthropic(input_data.text)
+        elif USE_API == "openai" and OPENAI_API_KEY:
             result = extract_sentiment_openai(input_data.text)
         else:
             raise HTTPException(
@@ -122,7 +167,7 @@ async def process_text(input_data: TextInput):
 async def health_check():
     return {
         "status": "healthy",
-        "api_configured": bool(OPENAI_API_KEY), # or ANTHROPIC_API_KEY or GEMINI_API_KEY),
+        "api_configured": bool(OPENAI_API_KEY or ANTHROPIC_API_KEY),
         "using_api": USE_API
     }
 
